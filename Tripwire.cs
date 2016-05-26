@@ -16,6 +16,8 @@ using Microsoft.Win32;
 using System.ServiceProcess;
 using NLog;
 using System.Xml.Linq;
+using System.Security.AccessControl;
+using System.Security.Principal;
 
 namespace TripwireService
 {
@@ -33,7 +35,6 @@ namespace TripwireService
         private List<string> foldersToWatch = new List<string>();
         private static SNSConfig snsconfig = new SNSConfig();
         private bool sendSNSAlert;
-        private StringBuilder sb;
 
         public void DeleteTemps()
         //Delete temporary files created by application
@@ -247,10 +248,7 @@ namespace TripwireService
 
                     if (this.witnessFile == "")
                     {
-                        witnessExt = "txt";
-                        //create a file in memory
-                        sb = new StringBuilder();
-                        sb.AppendLine("Some text in the witness file");
+                        witnessExt = ".docx";
                     }
                     else
                     {
@@ -265,34 +263,30 @@ namespace TripwireService
                     }
                     else
                     {
-                        System.IO.Directory.CreateDirectory(destfolder);
+                        //allow full access to this directory
+                        logger.Info("Creating folder " + destfolder);
+                        DirectorySecurity ds = new DirectorySecurity();
+                        SecurityIdentifier everyone = new SecurityIdentifier(WellKnownSidType.WorldSid, null);
+                        ds.AddAccessRule(new FileSystemAccessRule(everyone, FileSystemRights.FullControl,
+                            InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit, PropagationFlags.None, AccessControlType.Allow));
+                        DirectoryInfo di = System.IO.Directory.CreateDirectory(destfolder, ds);
+                        di.SetAccessControl(ds);
+                        logger.Info("Folder " + destfolder + " created");
                     }
                     if (File.Exists(destfile))
                     {
                         System.IO.File.Delete(destfile);
-                        if (this.witnessFile == "")
-                        {
-                            //write the file in memory to the file in the folder
-                            File.WriteAllText(destfile, sb.ToString());
-                        }
-                        else
-                        {
-                            System.IO.File.Copy(this.witnessFile, destfile, true);
-                        }
-                        File.SetAttributes(destfile, FileAttributes.Hidden);
+                    }
+                    if (this.witnessFile == "")
+                    {
+                        logger.Info("Creating file " + destfile);
+                        WitnessFileCreator.Create(destfile);
                     }
                     else
                     {
-                        if (this.witnessFile == "")
-                        {
-                            //write the file in memory to the file in the folder
-                            File.WriteAllText(destfile, sb.ToString());
-                        }
-                        else
-                        {
-                            System.IO.File.Copy(this.witnessFile, destfile, true);
-                        }
-                        File.SetAttributes(destfile, FileAttributes.Hidden);
+                        logger.Info("Copying file " + witnessFile + " to " + destfolder);
+                        WitnessFileCreator.Create(witnessFile, destfile);
+                        logger.Info("Done copying file");
                     }
 
                     File.SetAttributes(destfolder, FileAttributes.Hidden);

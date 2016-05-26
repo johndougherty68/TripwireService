@@ -68,6 +68,10 @@
       <HintPath>..\packages\AWSSDK.2.3.40.0\lib\net35\AWSSDK.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="DocX, Version=1.0.1.13, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\DocX.1.0.0.13\lib\net20\DocX.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
       <HintPath>..\packages\NLog.4.2.3\lib\net35\NLog.dll</HintPath>
       <Private>True</Private>
@@ -85,6 +89,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AWSSNSLogger.cs" />
+    <Compile Include="Interfaces.cs" />
     <Compile Include="Tripwire.cs" />
     <Compile Include="TripwireService.cs">
       <SubType>Component</SubType>
@@ -101,6 +106,8 @@
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SNSConfig.cs" />
+    <Compile Include="WitnessFileCreator.cs" />
+    <Compile Include="WordWitnessFile.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
