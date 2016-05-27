@@ -33,6 +33,7 @@ namespace TripwireService
         private bool stopVSSService;
         private bool shutdownServer;
         private List<string> foldersToWatch = new List<string>();
+        private bool ignoreTempFiles;
         private static SNSConfig snsconfig = new SNSConfig();
         private bool sendSNSAlert;
 
@@ -189,6 +190,10 @@ namespace TripwireService
                         case "tripfoldername":
                             logger.Info("Setting trip folder name to " + addValue);
                             this.tripFolderName = addValue;
+                            break;
+                        case "ignoretempfiles":
+                            logger.Info("Temp files will be ignored: " + addValue);
+                            this.ignoreTempFiles = bool.Parse(addValue);
                             break;
                         case "witnessfile":
                             //no value for witnessfile - we'll create one later
@@ -347,6 +352,13 @@ namespace TripwireService
         {
             try
             {
+                //if the extension of the file is in the "extensionsToIgnore" list, ignore it
+                var fileName = e.FullPath;
+                if(shouldIgnoreFile(fileName))
+                {
+                    return;
+                }
+
                 logEvent(e);
                 if (stopServerService) { StopServerService(); }
                 if (stopVSSService) { StopVSSService(); }
@@ -358,6 +370,26 @@ namespace TripwireService
 
                 throw;
             }
+        }
+
+        private bool shouldIgnoreFile(string fileName)
+        {
+            //ignore anything with a ".tmp" extension
+            string extension = Path.GetExtension(fileName);
+            if(extension.ToLower()==".tmp")
+            {
+                logger.Info("Files with an extension 'tmp' are ignored.");
+                return true;
+            }
+
+            //ignore anything beginning with a ~$
+            string file = Path.GetFileName(fileName);
+            if(file.IndexOf("~$")>=0)
+            {
+                logger.Info("Files beginning with '~$' are ignored.");
+                return true;
+            }
+            return false;
         }
 
         private void logEvent(FileSystemEventArgs e)
