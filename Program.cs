@@ -21,5 +21,6 @@ namespace CryptoWatcherService
             };
             ServiceBase.Run(ServicesToRun);
         }
+
     }
 }

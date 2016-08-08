@@ -315,7 +315,7 @@ namespace TripwireService
             }
         }
 
-
+      
         //private void writeEvent(string message)
         //{
         //    System.Diagnostics.EventLog appLog = new System.Diagnostics.EventLog();
